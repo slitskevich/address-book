@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -32,7 +33,8 @@ public class ContactResource {
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Contact getById(@PathParam("id") int id) {
-		return findById(id);
+		Contact contact = findById(id);
+		return contact;
 	}
 	
 	@POST
@@ -64,6 +66,18 @@ public class ContactResource {
 		} else {
 			return new Status("FAILURE", "Failed to find a contact with id: " + id);
 		}		
+	}
+	
+	@DELETE
+	@Path("{id}")
+	public Status delete(@PathParam("id") int id) {
+		Contact contact = findById(id);
+		if (contact != null) {
+			contactList.remove(contact);
+			return new Status("SUCCESS", "Deleted contact with id: " + id);
+		} else {
+			return new Status("FAILURE", "Failed to find a contact with id: " + id);
+		}
 	}
 	
 	private Contact findById(int id) {
