@@ -2,6 +2,7 @@ package com.contacts;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -18,6 +19,8 @@ import javax.ws.rs.core.Response;
 @Path("contacts")
 public class ContactResource {
 	
+	private static final Logger LOGGER = Logger.getLogger( ContactResource.class.getName() );
+	
 	private static List<Contact> contactList;
 	
 	public ContactResource() {
@@ -28,6 +31,7 @@ public class ContactResource {
 	@Path("")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Contact[] getAll() {
+		LOGGER.info("getAll started");
 		return contactList.toArray(new Contact[contactList.size()]);
 	}
 	
