@@ -1,6 +1,5 @@
 package com.contacts;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -31,8 +30,6 @@ public class ContactResource {
 	private static final Logger LOGGER = Logger.getLogger(ContactResource.class.getName());
 	
 	private static final String PAGE_URI_FORMAT = "<%s?offset=%d&limit=%d>; rel=\"%s\"";
-	
-	private static final int DEFAULT_PAGE_LIMIT = 5;
 	
 	private static List<Contact> contactList;
 	
@@ -84,7 +81,18 @@ public class ContactResource {
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getById(@PathParam("id") int id) {
-		return Response.ok(findById(id)).build();
+		try {
+			Contact contact = dao.loadById(id);
+			if (contact != null) {
+				return Response.ok(contact).build();
+			} else {
+				throw new NotFoundException();
+			}
+		} catch (Exception ex) {
+			LOGGER.severe(ex.getMessage());
+			ex.printStackTrace();
+			throw new InternalServerErrorException();
+		}
 	}
 	
 	@POST
@@ -101,21 +109,23 @@ public class ContactResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response update(@PathParam("id") int id, Contact contactUpdate) {
-		Contact contact = findById(id);
-		boolean modified = false;
-		if (contactUpdate.getFirstName() != null) {
-			contact.setFirstName(contactUpdate.getFirstName());
-			modified = true;
-		}
-		if (contactUpdate.getLastName() != null) {
-			contact.setLastName(contactUpdate.getLastName());
-			modified = true;
-		}
-		if (contactUpdate.getEmail() != null) {
-			contact.setEmail(contactUpdate.getEmail());
-			modified = true;
-		}
-		return Response.status(modified ? 200 : 304).build();
+		LOGGER.info("Call to update contact with id: " + id);
+		return Response.ok().build();
+//		Contact contact = findById(id);
+//		boolean modified = false;
+//		if (contactUpdate.getFirstName() != null) {
+//			contact.setFirstName(contactUpdate.getFirstName());
+//			modified = true;
+//		}
+//		if (contactUpdate.getLastName() != null) {
+//			contact.setLastName(contactUpdate.getLastName());
+//			modified = true;
+//		}
+//		if (contactUpdate.getEmail() != null) {
+//			contact.setEmail(contactUpdate.getEmail());
+//			modified = true;
+//		}
+//		return Response.status(modified ? 200 : 304).build();
 	}
 	
 	@DELETE

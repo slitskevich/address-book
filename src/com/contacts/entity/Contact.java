@@ -55,6 +55,10 @@ public class Contact extends Entity implements Serializable {
 	public static long getSerialversionuid() {
 		return serialVersionUID;
 	}
+	
+	public Contact() {
+		
+	}
 
 	public Contact(ResultSet set) throws SQLException {
 		super(set);

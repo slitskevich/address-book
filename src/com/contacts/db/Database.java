@@ -53,6 +53,7 @@ public class Database {
 	        list.setTotalCount(counter.getInt(1));
 	        
 			result.close();
+			counter.close();
 			statement.close();
 			connection.close();
 		} catch (SQLException se) {
@@ -78,6 +79,49 @@ public class Database {
 			} 
 		}
 		return list;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T extends Entity> T queryEntity(String sql, Class<? extends Entity> entityClass) throws Exception {
+		LOGGER.info("Query database: " + sql);
+		Connection connection = null;
+		Statement statement = null;
+		ResultSet result = null;
+		T entity = null;
+		try {
+			connection = dataSource.getConnection();
+			statement = connection.createStatement();
+			result = statement.executeQuery(sql);
+			if (result.next()) {
+				entity = (T) entityClass.getDeclaredConstructor(ResultSet.class).newInstance(result);
+			}
+	        
+			result.close();
+			statement.close();
+			connection.close();
+		} catch (SQLException se) {
+			LOGGER.severe("Failed to query DB");
+			se.printStackTrace();
+			throw se;
+		} finally {
+			try {
+				if (statement != null) {
+					statement.close();
+				}
+			} catch (SQLException se) {
+				LOGGER.severe("Failed to close DB statement: " + statement.toString());
+				se.printStackTrace();
+			} 
+			try {
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (SQLException se) {
+				LOGGER.severe("Failed to close DB connection: " + se.getMessage());
+				se.printStackTrace();
+			} 
+		}
+		return entity;
 	}
 	
 	class QueryResult {
