@@ -1,11 +1,18 @@
-package com.contacts;
+package com.contacts.entity;
 
 import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
-public class Contact implements Serializable {
+public class Contact extends Entity implements Serializable {
+	
+	private static final String ID = "id";
+	private static final String EMAIL = "email";
+	private static final String FIRST_NAME = "firstName";
+	private static final String LAST_NAME = "lastName";
 	
 	private static final long serialVersionUID = 721756743894563L;
     private int id;
@@ -49,14 +56,11 @@ public class Contact implements Serializable {
 		return serialVersionUID;
 	}
 
-	public Contact() {
-    	
+	public Contact(ResultSet set) throws SQLException {
+		super(set);
+		this.id = set.getInt(ID);
+		this.email = set.getString(EMAIL);
+		this.firstName = set.getString(FIRST_NAME);
+		this.lastName = set.getString(LAST_NAME);
     }
-	
-	public Contact(int id, String firstName, String lastName, String email) {
-		this.id = id;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.email = email;
-	}
 }

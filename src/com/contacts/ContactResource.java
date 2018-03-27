@@ -1,6 +1,6 @@
 package com.contacts;
 
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -8,6 +8,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -19,7 +20,10 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+
+import com.contacts.db.ContactDao;
+import com.contacts.entity.Contact;
+import com.contacts.entity.EntityList;
 
 @Path("contacts")
 public class ContactResource {
@@ -32,46 +36,47 @@ public class ContactResource {
 	
 	private static List<Contact> contactList;
 	
-	public ContactResource() {
-		initTable();
-	}
+	private static ContactDao dao = new ContactDao();
 	
 	@GET
 	@Path("")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAll(@Context ContainerRequestContext request, @QueryParam("offset") int offset, @QueryParam("limit") int limit) {
 		LOGGER.info("getAll started, offset: " + offset + ", limit: " + limit);
-		if (offset < 0 || offset >= contactList.size() || limit < 0) {
+		if (offset < 0 || limit < 0) {
 			throw new BadRequestException();
 		} else {
-			int toIndex = offset + limit;
-			if (toIndex >= contactList.size()) {
-				toIndex = contactList.size() - 1; 
-			}
-			LOGGER.info("Loading contacts from " + offset + " to " + toIndex);
-			String uri = request.getUriInfo().getAbsolutePath().toString();
-			LOGGER.info("uri: " + uri);
-			
-			StringBuilder links = new StringBuilder();
-			if (offset > 0) {
-				links.append(String.format(PAGE_URI_FORMAT, uri, 0, limit, "first")).
-					  append(",").
-					  append(String.format(PAGE_URI_FORMAT, uri, offset - limit < 0 ? 0 : offset - limit, limit, "prev"));
-			}
-			if (offset + limit < contactList.size()) {
-				if (links.length() > 0) {
-					links.append(",");
+			try {
+				int toIndex = offset + limit;
+				LOGGER.info("Loading contacts from " + offset + " to " + toIndex);
+				String uri = request.getUriInfo().getAbsolutePath().toString();
+				
+				EntityList<Contact> result = dao.load(offset, limit);
+				
+				StringBuilder links = new StringBuilder();
+				if (offset > 0) {
+					links.append(String.format(PAGE_URI_FORMAT, uri, 0, limit, "first")).
+						  append(",").
+						  append(String.format(PAGE_URI_FORMAT, uri, offset - limit < 0 ? 0 : offset - limit, limit, "prev"));
 				}
-				links.append(String.format(PAGE_URI_FORMAT, uri, contactList.size() - limit, limit, "last")).
-					  append(",").
-					  append(String.format(PAGE_URI_FORMAT, uri, offset + limit, limit, "next"));
-			}
+				if (offset + limit < result.getTotalCount()) {
+					if (links.length() > 0) {
+						links.append(",");
+					}
+					links.append(String.format(PAGE_URI_FORMAT, uri, result.getTotalCount() - limit, limit, "last")).
+						  append(",").
+						  append(String.format(PAGE_URI_FORMAT, uri, offset + limit, limit, "next"));
+				}
 
-			LOGGER.info("resources. links: " + links.toString());
-			List<Contact> result = contactList.subList(offset, toIndex);
-			return Response.ok(result.toArray(new Contact[result.size()])).
-							header("Links", links.toString()).
-							build();
+				List<Contact> contacts = result.getItems();
+				return Response.ok(contacts.toArray(new Contact[contacts.size()])).
+								header("Links", links.toString()).
+								build();
+			} catch (Exception ex) {
+				LOGGER.severe(ex.getMessage());
+				ex.printStackTrace();
+				throw new InternalServerErrorException();
+			}
 		}
 	}
 	
@@ -129,15 +134,4 @@ public class ContactResource {
 		}
 		throw new NotFoundException();
 	}
-
-	
-	private void initTable() {
-		if (contactList == null) {
-			contactList = new ArrayList<Contact>();
-			for (int i = 0; i < 20; i += 1) {
-				contactList.add(new Contact(i, "first-" + i, "last-" + i, i + ".last@mail.de"));
-			}
-		}
-	}
-
 }
