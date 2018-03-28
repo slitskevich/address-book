@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Contact extends Entity implements Serializable {
 	
 	private static final String ID = "id";
-	private static final String EMAIL = "email";
+	private static final String ADDRESS = "email";
 	private static final String FIRST_NAME = "firstName";
 	private static final String LAST_NAME = "lastName";
 	
@@ -18,7 +18,7 @@ public class Contact extends Entity implements Serializable {
     private int id;
     private String firstName;
     private String lastName;
-    private String email;
+    private String address;
     
     public int getId() {
 		return id;
@@ -44,12 +44,12 @@ public class Contact extends Entity implements Serializable {
 		this.lastName = lastName;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getAddress() {
+		return address;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setAddress(String address) {
+		this.address = address;
 	}
 
 	public static long getSerialversionuid() {
@@ -63,7 +63,7 @@ public class Contact extends Entity implements Serializable {
 	public Contact(ResultSet set) throws SQLException {
 		super(set);
 		this.id = set.getInt(ID);
-		this.email = set.getString(EMAIL);
+		this.address = set.getString(ADDRESS);
 		this.firstName = set.getString(FIRST_NAME);
 		this.lastName = set.getString(LAST_NAME);
     }

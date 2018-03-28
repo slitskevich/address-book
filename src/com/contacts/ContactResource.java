@@ -20,6 +20,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.validator.routines.EmailValidator;
+
 import com.contacts.db.ContactDao;
 import com.contacts.entity.Contact;
 import com.contacts.entity.EntityList;
@@ -30,8 +32,6 @@ public class ContactResource {
 	private static final Logger LOGGER = Logger.getLogger(ContactResource.class.getName());
 	
 	private static final String PAGE_URI_FORMAT = "<%s?offset=%d&limit=%d>; rel=\"%s\"";
-	
-	private static List<Contact> contactList;
 	
 	private static ContactDao dao = new ContactDao();
 	
@@ -100,8 +100,15 @@ public class ContactResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response insert(Contact contact) {
-		contactList.add(contact);
-        return Response.status(201).build();
+		LOGGER.info("Call to create contact");
+		try {
+			dao.create(contact);
+			return Response.status(201).build();
+		} catch (Exception ex) {
+			LOGGER.severe(ex.getMessage());
+			ex.printStackTrace();
+			throw new InternalServerErrorException();
+		}
     }
 	
 	@PUT
@@ -110,38 +117,31 @@ public class ContactResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response update(@PathParam("id") int id, Contact contactUpdate) {
 		LOGGER.info("Call to update contact with id: " + id);
-		return Response.ok().build();
-//		Contact contact = findById(id);
-//		boolean modified = false;
-//		if (contactUpdate.getFirstName() != null) {
-//			contact.setFirstName(contactUpdate.getFirstName());
-//			modified = true;
-//		}
-//		if (contactUpdate.getLastName() != null) {
-//			contact.setLastName(contactUpdate.getLastName());
-//			modified = true;
-//		}
-//		if (contactUpdate.getEmail() != null) {
-//			contact.setEmail(contactUpdate.getEmail());
-//			modified = true;
-//		}
-//		return Response.status(modified ? 200 : 304).build();
+		try {
+			if (EmailValidator.getInstance().isValid(contactUpdate.getAddress())) {
+				dao.update(id, contactUpdate);
+				return Response.ok().build();
+			} else {
+				return Response.status(400).entity(new Status("Invalid e-mail address: " + contactUpdate.getAddress())).build();
+			}
+		} catch (Exception ex) {
+			LOGGER.severe(ex.getMessage());
+			ex.printStackTrace();
+			throw new InternalServerErrorException();
+		}
 	}
 	
 	@DELETE
 	@Path("{id}")
 	public Response delete(@PathParam("id") int id) {
-		Contact contact = findById(id);
-		contactList.remove(contact);
-		return Response.status(204).build();
-	}
-	
-	private Contact findById(int id) {
-		for (Contact next : contactList) {
-			if (next.getId() == id) {
-				return next;
-			}
+		LOGGER.info("Call to update contact with id: " + id);
+		try {
+			dao.delete(id);
+			return Response.status(204).build();
+		} catch (Exception ex) {
+			LOGGER.severe(ex.getMessage());
+			ex.printStackTrace();
+			throw new InternalServerErrorException();
 		}
-		throw new NotFoundException();
 	}
 }
