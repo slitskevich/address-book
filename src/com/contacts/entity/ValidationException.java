@@ -1,4 +1,4 @@
-package com.contacts;
+package com.contacts.entity;
 
 public class ValidationException extends Exception {
 	/**

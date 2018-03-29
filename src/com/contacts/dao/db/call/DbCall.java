@@ -1,4 +1,4 @@
-package com.contacts.db;
+package com.contacts.dao.db.call;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -25,7 +25,7 @@ public abstract class DbCall {
 		}
 	}
 	
-	public void execute(String sql) throws SQLException {
+	public void execute(String sql) throws Exception {
 		LOGGER.info("DB call: " + sql);
 		Connection connection = null;
 		Statement statement = null;
@@ -61,5 +61,5 @@ public abstract class DbCall {
 		}
 	}
 	
-	protected abstract void doCall(Statement statement, String sql) throws SQLException;
+	protected abstract void doCall(Statement statement, String sql) throws Exception;
 }

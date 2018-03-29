@@ -5,11 +5,11 @@ import javax.ws.rs.ApplicationPath;
 import org.glassfish.jersey.server.ResourceConfig;
 
 @ApplicationPath("api")
-public class RESTServices extends ResourceConfig {
+public class ApiServices extends ResourceConfig {
 	
-	public RESTServices() {
+	public ApiServices() {
 		packages("com.fasterxml.jackson.jaxrs.json");
-        packages("com.contacts");
+        packages("com.contacts.services");
 	}
 
 }

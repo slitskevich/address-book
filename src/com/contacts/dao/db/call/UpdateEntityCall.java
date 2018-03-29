@@ -1,4 +1,4 @@
-package com.contacts.db;
+package com.contacts.dao.db.call;
 
 import java.sql.*;
 

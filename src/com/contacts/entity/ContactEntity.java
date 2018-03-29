@@ -6,8 +6,10 @@ import java.sql.SQLException;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.validator.routines.EmailValidator;
+
 @XmlRootElement
-public class Contact extends Entity implements Serializable {
+public class ContactEntity extends Entity implements Serializable {
 	
 	private static final String ID = "id";
 	private static final String ADDRESS = "email";
@@ -56,15 +58,28 @@ public class Contact extends Entity implements Serializable {
 		return serialVersionUID;
 	}
 	
-	public Contact() {
+	public ContactEntity() {
 		
 	}
 
-	public Contact(ResultSet set) throws SQLException {
+	public ContactEntity(ResultSet set) throws SQLException {
 		super(set);
 		this.id = set.getInt(ID);
 		this.address = set.getString(ADDRESS);
 		this.firstName = set.getString(FIRST_NAME);
 		this.lastName = set.getString(LAST_NAME);
     }
+	
+	public void validate() throws ValidationException {
+		if (this.getFirstName() == null || this.getFirstName().isEmpty()) {
+			throw new ValidationException("Missing first name value");
+		} else if (this.getLastName() == null || this.getLastName().isEmpty()) {
+			throw new ValidationException("Missing last name value");
+		} else if (this.getAddress() == null || this.getAddress().isEmpty()) {
+			throw new ValidationException("Missing e-mail value");
+		} else if (!EmailValidator.getInstance().isValid(this.getAddress())) {
+			throw new ValidationException("Invalid e-mail address: " + this.getAddress());
+		}
+	}
+
 }
