@@ -8,7 +8,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -34,6 +33,9 @@ public class ContactResource {
 	private static final String PAGE_URI_FORMAT = "<%s?offset=%d&limit=%d>; rel=\"%s\"";
 	
 	private static ContactDao dao = new ContactDao();
+	
+	public ContactResource() {
+	}
 	
 	@GET
 	@Path("")
@@ -86,7 +88,7 @@ public class ContactResource {
 			if (contact != null) {
 				return Response.ok(contact).build();
 			} else {
-				throw new NotFoundException();
+				return Response.status(400).entity(new Status("Can't find contact with id: " + id)).build();
 			}
 		} catch (Exception ex) {
 			LOGGER.severe(ex.getMessage());
@@ -102,12 +104,15 @@ public class ContactResource {
     public Response insert(Contact contact) {
 		LOGGER.info("Call to create contact");
 		try {
+			validateContact(contact);
 			dao.create(contact);
 			return Response.status(201).build();
+		} catch (ValidationException ex) {
+			return Response.status(400).entity(new Status(ex.getMessage())).build();
 		} catch (Exception ex) {
 			LOGGER.severe(ex.getMessage());
 			ex.printStackTrace();
-			throw new InternalServerErrorException();
+			return Response.status(400).entity(new Status(ex.getMessage())).build();
 		}
     }
 	
@@ -118,16 +123,15 @@ public class ContactResource {
 	public Response update(@PathParam("id") int id, Contact contactUpdate) {
 		LOGGER.info("Call to update contact with id: " + id);
 		try {
-			if (EmailValidator.getInstance().isValid(contactUpdate.getAddress())) {
-				dao.update(id, contactUpdate);
-				return Response.ok().build();
-			} else {
-				return Response.status(400).entity(new Status("Invalid e-mail address: " + contactUpdate.getAddress())).build();
-			}
+			validateContact(contactUpdate);
+			dao.update(id, contactUpdate);
+			return Response.ok().build();
+		} catch (ValidationException ex) {
+			return Response.status(400).entity(new Status(ex.getMessage())).build();
 		} catch (Exception ex) {
 			LOGGER.severe(ex.getMessage());
 			ex.printStackTrace();
-			throw new InternalServerErrorException();
+			return Response.status(400).entity(new Status(ex.getMessage())).build();
 		}
 	}
 	
@@ -141,7 +145,21 @@ public class ContactResource {
 		} catch (Exception ex) {
 			LOGGER.severe(ex.getMessage());
 			ex.printStackTrace();
-			throw new InternalServerErrorException();
+			return Response.status(400).entity(new Status(ex.getMessage())).build();
+		}
+	}
+	
+	private void validateContact(Contact contact) throws ValidationException {
+		if (contact == null) {
+			throw new ValidationException("Invalid contact object");
+		} else if (contact.getFirstName() == null || contact.getFirstName().isEmpty()) {
+			throw new ValidationException("Missing first name value");
+		} else if (contact.getLastName() == null || contact.getLastName().isEmpty()) {
+			throw new ValidationException("Missing last name value");
+		} else if (contact.getAddress() == null || contact.getAddress().isEmpty()) {
+			throw new ValidationException("Missing e-mail value");
+		} else if (!EmailValidator.getInstance().isValid(contact.getAddress())) {
+			throw new ValidationException("Invalid e-mail address: " + contact.getAddress());
 		}
 	}
 }
