@@ -1,13 +1,13 @@
-package com.contacts.services;
+package com.contacts.resources;
 
-public class ApiStatus {
+public class ResourceStatus {
 	private String message;
 	
-	public ApiStatus() {
+	public ResourceStatus() {
 		
 	}
 	
-	public ApiStatus(String message) {
+	public ResourceStatus(String message) {
 		this.message = message;
 	}
 	

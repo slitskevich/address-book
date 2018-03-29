@@ -1,4 +1,4 @@
-package com.contacts.services;
+package com.contacts.resources;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -55,11 +55,11 @@ public class ContactResource {
 				return Response.ok(contacts.toArray(new ContactEntity[contacts.size()])).header("Links", links).build();
 			} catch (Exception ex) {
 				LOGGER.severe(ex.getMessage());
-				return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ApiStatus(ex.getMessage())).build();
+				return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ResourceStatus(ex.getMessage())).build();
 			}
 		} else {
 			return Response.status(Status.BAD_REQUEST)
-					.entity(new ApiStatus("Invalid pagination parameters (offset: " + offset + ", limit: " + limit))
+					.entity(new ResourceStatus("Invalid pagination parameters (offset: " + offset + ", limit: " + limit))
 					.build();
 		}
 	}
@@ -73,12 +73,12 @@ public class ContactResource {
 			if (contact != null) {
 				return Response.ok(contact).build();
 			} else {
-				return Response.status(Status.BAD_REQUEST).entity(new ApiStatus("Can't find contact with id: " + id))
+				return Response.status(Status.BAD_REQUEST).entity(new ResourceStatus("Can't find contact with id: " + id))
 						.build();
 			}
 		} catch (Exception ex) {
 			LOGGER.severe(ex.getMessage());
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ApiStatus(ex.getMessage())).build();
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ResourceStatus(ex.getMessage())).build();
 		}
 	}
 
@@ -93,10 +93,10 @@ public class ContactResource {
 			dao.create(contact);
 			return Response.status(Status.CREATED).build();
 		} catch (ValidationException ex) {
-			return Response.status(Status.BAD_REQUEST).entity(new ApiStatus(ex.getMessage())).build();
+			return Response.status(Status.BAD_REQUEST).entity(new ResourceStatus(ex.getMessage())).build();
 		} catch (Exception ex) {
 			LOGGER.severe(ex.getMessage());
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ApiStatus(ex.getMessage())).build();
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ResourceStatus(ex.getMessage())).build();
 		}
 	}
 
@@ -111,10 +111,10 @@ public class ContactResource {
 			dao.update(id, contactUpdate);
 			return Response.ok().build();
 		} catch (ValidationException ex) {
-			return Response.status(Status.BAD_REQUEST).entity(new ApiStatus(ex.getMessage())).build();
+			return Response.status(Status.BAD_REQUEST).entity(new ResourceStatus(ex.getMessage())).build();
 		} catch (Exception ex) {
 			LOGGER.severe(ex.getMessage());
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ApiStatus(ex.getMessage())).build();
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ResourceStatus(ex.getMessage())).build();
 		}
 	}
 
@@ -127,7 +127,7 @@ public class ContactResource {
 			return Response.status(Status.NO_CONTENT).build();
 		} catch (Exception ex) {
 			LOGGER.severe(ex.getMessage());
-			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ApiStatus(ex.getMessage())).build();
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(new ResourceStatus(ex.getMessage())).build();
 		}
 	}
 

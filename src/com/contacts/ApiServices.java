@@ -9,7 +9,7 @@ public class ApiServices extends ResourceConfig {
 	
 	public ApiServices() {
 		packages("com.fasterxml.jackson.jaxrs.json");
-        packages("com.contacts.services");
+        packages("com.contacts.resources");
 	}
 
 }
