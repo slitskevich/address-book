@@ -22,6 +22,11 @@ public class EntityListPage <T extends Entity> {
 		}
 	}
 	
+	public EntityListPage(Collection<? extends T> list) {
+		this.items = new ArrayList<T>(list.size());
+		this.items.addAll(list);
+	}
+	
 	public List<T> getItems() {
 		return items;
 	}

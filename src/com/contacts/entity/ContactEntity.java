@@ -17,7 +17,8 @@ public class ContactEntity extends Entity implements Serializable {
 	private static final String LAST_NAME = "lastName";
 	
 	private static final long serialVersionUID = 721756743894563L;
-    private int id;
+	private static final int INITIAL_ID = -1;
+    private int id = INITIAL_ID;
     private String firstName;
     private String lastName;
     private String address;
@@ -61,6 +62,13 @@ public class ContactEntity extends Entity implements Serializable {
 	public ContactEntity() {
 		
 	}
+	
+	public ContactEntity(int id, String firstName, String lastName, String address) {
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.address = address;
+	}
 
 	public ContactEntity(ResultSet set) throws SQLException {
 		super(set);
@@ -71,7 +79,9 @@ public class ContactEntity extends Entity implements Serializable {
     }
 	
 	public void validate() throws ValidationException {
-		if (this.getFirstName() == null || this.getFirstName().isEmpty()) {
+		if (this.getId() == INITIAL_ID) {
+			throw new ValidationException("Missing ID value");
+		} else if (this.getFirstName() == null || this.getFirstName().isEmpty()) {
 			throw new ValidationException("Missing first name value");
 		} else if (this.getLastName() == null || this.getLastName().isEmpty()) {
 			throw new ValidationException("Missing last name value");

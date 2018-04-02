@@ -14,6 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -30,10 +31,23 @@ public class ContactResource {
 	private static final Logger LOGGER = Logger.getLogger(ContactResource.class.getName());
 
 	private static final String PAGE_URI_FORMAT = "<%s?offset=%d&limit=%d>; rel=\"%s\"";
+	
+	static final String LINKS_SEPARATOR = ",";
+	static final String OFFSET_PARAMETER = "offset";
+	static final String LIMIT_PARAMETER = "limit";
+	
+	static final String FIRST_REL = "first";
+	static final String PREV_REL = "prev";
+	static final String NEXT_REL = "next";
+	static final String LAST_REL = "last";
 
-	private static ContactDao dao = new ContactDBDao();
+	private ContactDao dao = new ContactDBDao();
 
 	public ContactResource() {
+	}
+	
+	ContactResource(ContactDao dao) {
+		this.dao = dao;
 	}
 
 	@GET
@@ -41,6 +55,10 @@ public class ContactResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getAll(@Context ContainerRequestContext request, @QueryParam("offset") int offset,
 			@QueryParam("limit") int limit) {
+		return getAllResponse(request.getUriInfo().getAbsolutePath().toString(), offset, limit);
+	}
+	
+	Response getAllResponse(String uri, int offset, int limit) {
 		LOGGER.info("getAll started, offset: " + offset + ", limit: " + limit);
 		if (offset >= 0 && limit >= 0) {
 			try {
@@ -49,7 +67,6 @@ public class ContactResource {
 				EntityListPage<ContactEntity> result = dao.load(offset, limit);
 
 				List<ContactEntity> contacts = result.getItems();
-				String uri = request.getUriInfo().getAbsolutePath().toString();
 				String links = this.buildLinksHeaderValue(uri, result.getTotalListSize(), offset, limit);
 
 				return Response.ok(contacts.toArray(new ContactEntity[contacts.size()])).header("Links", links).build();
@@ -134,15 +151,17 @@ public class ContactResource {
 	private String buildLinksHeaderValue(String uri, int totalSize, int currentOffset, int limit) {
 		StringBuilder links = new StringBuilder();
 		if (currentOffset > 0) {
-			links.append(String.format(PAGE_URI_FORMAT, uri, 0, limit, "first")).append(",").append(String.format(
-					PAGE_URI_FORMAT, uri, currentOffset - limit < 0 ? 0 : currentOffset - limit, limit, "prev"));
+			links.append(String.format(PAGE_URI_FORMAT, uri, 0, limit, FIRST_REL)).
+				  append(LINKS_SEPARATOR).
+				  append(String.format(PAGE_URI_FORMAT, uri, currentOffset - limit < 0 ? 0 : currentOffset - limit, limit, PREV_REL));
 		}
 		if (currentOffset + limit < totalSize) {
 			if (links.length() > 0) {
-				links.append(",");
+				links.append(LINKS_SEPARATOR);
 			}
-			links.append(String.format(PAGE_URI_FORMAT, uri, totalSize - limit, limit, "last")).append(",")
-					.append(String.format(PAGE_URI_FORMAT, uri, currentOffset + limit, limit, "next"));
+			links.append(String.format(PAGE_URI_FORMAT, uri, totalSize - limit, limit, LAST_REL)).
+				  append(LINKS_SEPARATOR).
+				  append(String.format(PAGE_URI_FORMAT, uri, currentOffset + limit, limit, NEXT_REL));
 		}
 		return links.toString();
 	}
