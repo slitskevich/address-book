@@ -25,31 +25,65 @@ import com.contacts.dao.db.ContactDBDao;
 import com.contacts.entity.ContactEntity;
 import com.contacts.entity.ValidationException;
 
+/**
+ * The Class ContactResource implements REST API calls to retrieve and operate with contacts.
+ */
 @Path("contacts")
 public class ContactResource {
 
 	private static final Logger LOGGER = Logger.getLogger(ContactResource.class.getName());
 
+	/** String format for the pagination links */
 	private static final String PAGE_URI_FORMAT = "<%s?offset=%d&limit=%d>; rel=\"%s\"";
 	
+	/** Pagination links separator for response Links header */
 	static final String LINKS_SEPARATOR = ",";
+	
+	/** Request offset query parameter name */
 	static final String OFFSET_PARAMETER = "offset";
+	
+	/** Request limit query parameter name */
 	static final String LIMIT_PARAMETER = "limit";
 	
+	/** Pagination link rel parameter value */
 	static final String FIRST_REL = "first";
+	
+	/** Pagination link rel parameter value */
 	static final String PREV_REL = "prev";
+	
+	/** Pagination link rel parameter value */
 	static final String NEXT_REL = "next";
+	
+	/** Pagination link rel parameter value */
 	static final String LAST_REL = "last";
 
+	/** The DAO to access contacts. */
 	private ContactDao dao = new ContactDBDao();
 
+	/**
+	 * Instantiates a new contact resource.
+	 */
 	public ContactResource() {
 	}
 	
+	/**
+	 * Instantiates a new contact resource and overrides default DAO value - used for testing.
+	 *
+	 * @param dao the new DAO value
+	 */
 	ContactResource(ContactDao dao) {
 		this.dao = dao;
 	}
 
+	/**
+	 * Processes requests to load contacts list. Returns result page and sets Links header with pagination links.
+	 *
+	 * @param request the request
+	 * @param offset the result page offset
+	 * @param limit the result page limit
+	 * @return Response with list of contacts as an entity and Links header with pagination links, 
+	 * returns BAD_REQUEST status if pagination parameter are invalid or INTERNAL_SERVER_ERROR if fails to load contacts.
+	 */
 	@GET
 	@Path("")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -58,6 +92,15 @@ public class ContactResource {
 		return getAllResponse(request.getUriInfo().getAbsolutePath().toString(), offset, limit);
 	}
 	
+	/**
+	 * Auxiliary method to process load contacts page requests. Extracted for text purposes.
+	 *
+	 * @param uri the uri for pagination links
+	 * @param offset the result page offset
+	 * @param limit the result page limit
+	 * @return Response with list of contacts as an entity and Links header with pagination links, 
+	 * returns BAD_REQUEST status if pagination parameter are invalid or INTERNAL_SERVER_ERROR if fails to load contacts.
+	 */
 	Response getAllResponse(String uri, int offset, int limit) {
 		LOGGER.info("getAll started, offset: " + offset + ", limit: " + limit);
 		if (offset >= 0 && limit >= 0) {
@@ -81,6 +124,12 @@ public class ContactResource {
 		}
 	}
 
+	/**
+	 * Loads contact for specified ID
+	 *
+	 * @param id the id of the contact
+	 * @return retrieved contact entity; BAD_REQUEST response if no contact with the ID can be found; INTERNAL_SERVER_ERROR response if execution fails;
+	 */
 	@GET
 	@Path("{id}")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -99,6 +148,12 @@ public class ContactResource {
 		}
 	}
 
+	/**
+	 * Validates and persists new contact entity
+	 *
+	 * @param contact the contact to be created
+	 * @return successful status response; BAD_REQUEST response if contact data is invalid; INTERNAL_SERVER_ERROR if execution fails;
+	 */
 	@POST
 	@Path("")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -117,6 +172,13 @@ public class ContactResource {
 		}
 	}
 
+	/**
+	 * Validates update values and persists changed contact.
+	 *
+	 * @param id the id of the contact to be updated
+	 * @param contactUpdate the contact update values
+	 * @return successful status response; BAD_REQUEST response if contact data is invalid; INTERNAL_SERVER_ERROR if execution fails;
+	 */
 	@PUT
 	@Path("{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -135,6 +197,12 @@ public class ContactResource {
 		}
 	}
 
+	/**
+	 * Deletes contact identified by ID
+	 *
+	 * @param id the id of the contact to be deleted
+	 * @return the successful response; INTERNAL_SERVER_ERROR if execution fails;
+	 */
 	@DELETE
 	@Path("{id}")
 	public Response delete(@PathParam("id") int id) {
@@ -148,6 +216,15 @@ public class ContactResource {
 		}
 	}
 
+	/**
+	 * Builds the Links header value.
+	 *
+	 * @param uri the uri to be used for every link
+	 * @param totalSize the total number of contact entities
+	 * @param currentOffset the current page offset
+	 * @param limit the page size limit
+	 * @return value for Links header
+	 */
 	private String buildLinksHeaderValue(String uri, int totalSize, int currentOffset, int limit) {
 		StringBuilder links = new StringBuilder();
 		if (currentOffset > 0) {
